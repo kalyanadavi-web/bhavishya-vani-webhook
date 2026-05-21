@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 
 const BOT_TOKEN = "8998963894:AAFst6YKbTkTq8FzSuWdNw9eFujFsE0G_jc";
-const CHAT_ID = "1145476769";
+const CHAT_ID = "-1003746589873";
 
 app.get("/", (req, res) => {
     res.send("Bhavishya Vani Webhook Running");
