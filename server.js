@@ -3,7 +3,7 @@ const axios = require("axios");
 const app = express();
 
 const BOT_TOKEN = "8998963894:AAFst6YKbTkTq8FzSuWdNw9eFujFsE0G_jc";
-const CHAT_ID = "-1003746589873";
+const CHAT_ID = "-1003930606734";
 
 // Read raw plain text — NOT express.json()
 app.use(express.text({ type: '*/*' }));
