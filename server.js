@@ -217,14 +217,20 @@ app.post("/webhook/logger", async (req, res) => {
             return res.status(400).send("Empty body");
         }
 
+        // Strip TradingView console timestamp prefix if present
+        // TV console adds: [2026-05-29T15:30:00.000+05:30]: before each line
+        // Auto alert() payloads from Pine are always clean
+        // This stripping only matters for manual paste recovery
+        const cleanBody = body.replace(/^\[\d{4}-\d{2}-\d{2}T[\d:.+]+\]:\s*/gm, "").trim();
+
         // Split batch ID line from CSV content
-        const newlineIndex = body.indexOf("\n");
+        const newlineIndex = cleanBody.indexOf("\n");
         if (newlineIndex === -1) {
             return res.status(400).send("Invalid payload format");
         }
 
-        const firstLine = body.substring(0, newlineIndex).trim();
-        const csvContent = body.substring(newlineIndex + 1).trim();
+        const firstLine = cleanBody.substring(0, newlineIndex).trim();
+        const csvContent = cleanBody.substring(newlineIndex + 1).trim();
 
         // Validate batch ID format: BATCH:YYYY-MM-DD-AM or BATCH:YYYY-MM-DD-PM
         if (!firstLine.startsWith("BATCH:")) {
