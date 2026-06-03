@@ -297,7 +297,62 @@ app.get("/test-sheets", async (req, res) => {
         res.status(500).send(`Sheets error: ${error.message}`);
     }
 });
+// ── BB Strategy Logger route ──
+app.post("/webhook/bb-strategy", async (req, res) => {
+    try {
+        const body = req.body;
 
+        if (!body || typeof body !== "string") {
+            return res.status(400).send("Empty body");
+        }
+
+        // Parse JSON payload from Python script
+        let data;
+        try {
+            data = JSON.parse(body);
+        } catch (e) {
+            return res.status(400).send("Invalid JSON");
+        }
+
+        // Required fields: type and row
+        // type: "signal" | "trade" | "daily"
+        // row: array of values to append
+        const { type, row } = data;
+
+        if (!type || !row || !Array.isArray(row)) {
+            return res.status(400).send("Missing type or row");
+        }
+
+        // Map type to tab name
+        const tabMap = {
+            "signal": "BB-Signal-Log",
+            "trade":  "BB-Trade-Log",
+            "daily":  "BB-Daily-Log"
+        };
+
+        const tabName = tabMap[type];
+        if (!tabName) {
+            return res.status(400).send(`Unknown type: ${type}`);
+        }
+
+        // Append row to correct tab
+        const sheets = getSheetsClient();
+        await sheets.spreadsheets.values.append({
+            spreadsheetId: SHEET_ID,
+            range: `${tabName}!A1`,
+            valueInputOption: "RAW",
+            insertDataOption: "INSERT_ROWS",
+            requestBody: { values: [row] }
+        });
+
+        console.log(`BB Strategy: appended ${type} row to ${tabName}`);
+        res.status(200).send("OK");
+
+    } catch (error) {
+        console.error("BB Strategy logger error:", error.message);
+        res.status(500).send("Error");
+    }
+});
 app.listen(process.env.PORT || 3000, () => {
     console.log("Bhavishya Vani Server Running");
 });
