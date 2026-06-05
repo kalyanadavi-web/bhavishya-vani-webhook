@@ -327,7 +327,11 @@ app.post("/webhook/bb-strategy", async (req, res) => {
         const tabMap = {
             "signal": "BB-Signal-Log",
             "trade":  "BB-Trade-Log",
-            "daily":  "BB-Daily-Log"
+            "daily":  "BB-Daily-Log",
+            "signal_replay": "BB-Signal-Log-Replay",
+            "trade_replay":  "BB-Trade-Log-Replay",
+            "daily_replay":  "BB-Daily-Log-Replay"
+        };
         };
 
         const tabName = tabMap[type];
@@ -338,11 +342,13 @@ app.post("/webhook/bb-strategy", async (req, res) => {
         // Append row to correct tab
         const sheets = getSheetsClient();
 
-        // Write header if tab is empty
         const headerMap = {
             "signal": ["Date","Time","Type","Cond#","Cond Name","Spot","Strike","Elig Premium","MaxVol CE","MaxVol PE","Conf Path","Confirmed","Conf Time","Bars Waited","Conf Vol","Surge/Drop %","Spot at Conf","Entry Strike","Strike Changed","Entry Premium","Secondary Disabled","Invalidated Reason"],
             "trade":  ["Date","Type","Entry Strike","Condition","Conf Path","Surge/Drop %","Entry Time","Entry Premium","Initial SL","Lot1 Exit Time","Lot1 Exit Prem","Lot1 Pts","Highest Milestone","Final Lot2 SL","Lot2 Exit Time","Lot2 Exit Prem","Lot2 Exit Reason","Lot2 Pts","Was Armed","Total Pts","Result","Reached 1:1 Time"],
-            "daily":  ["Date","Total Elig","Confirmed","Primary","Secondary","Invalidated","Parallel Peak","Strike Changed","Exhaustion Exits","Armed Reversals","Armed Win Rate","Trades","Wins","Losses","Win Rate","Total Pts","Avg Surge Wins","Avg Surge Losses","Best Trade","Worst Trade","Notes"]
+            "daily":  ["Date","Total Elig","Confirmed","Primary","Secondary","Invalidated","Parallel Peak","Strike Changed","Exhaustion Exits","Armed Reversals","Armed Win Rate","Trades","Wins","Losses","Win Rate","Total Pts","Avg Surge Wins","Avg Surge Losses","Best Trade","Worst Trade","Notes"],
+            "signal_replay": ["Date","Source","Time","Type","Cond#","Cond Name","Spot","Strike","Conf Path","Conf Vol","Surge/Drop %","Entry Premium","Initial SL","Result","Total Pts","Notes"],
+            "trade_replay":  ["Date","Source","Type","Entry Strike","Conf Path","Entry Time","Entry Premium","Initial SL","Exit Time","Exit Premium","Exit Reason","Total Pts","Result"],
+            "daily_replay":  ["Date","Source","Total Signals","Confirmed","Primary","Secondary","Wins","Losses","Win Rate","Total Pts","Best Trade","Worst Trade"]
         };
 
         const existing = await sheets.spreadsheets.values.get({
