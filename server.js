@@ -337,12 +337,32 @@ app.post("/webhook/bb-strategy", async (req, res) => {
 
         // Append row to correct tab
         const sheets = getSheetsClient();
+
+        // Write header if tab is empty
+        const headerMap = {
+            "signal": ["Date","Time","Type","Cond#","Cond Name","Spot","Strike","Elig Premium","MaxVol CE","MaxVol PE","Conf Path","Confirmed","Conf Time","Bars Waited","Conf Vol","Surge/Drop %","Spot at Conf","Entry Strike","Strike Changed","Entry Premium","Secondary Disabled","Invalidated Reason"],
+            "trade":  ["Date","Type","Entry Strike","Condition","Conf Path","Surge/Drop %","Entry Time","Entry Premium","Initial SL","Lot1 Exit Time","Lot1 Exit Prem","Lot1 Pts","Highest Milestone","Final Lot2 SL","Lot2 Exit Time","Lot2 Exit Prem","Lot2 Exit Reason","Lot2 Pts","Was Armed","Total Pts","Result","Reached 1:1 Time"],
+            "daily":  ["Date","Total Elig","Confirmed","Primary","Secondary","Invalidated","Parallel Peak","Strike Changed","Exhaustion Exits","Armed Reversals","Armed Win Rate","Trades","Wins","Losses","Win Rate","Total Pts","Avg Surge Wins","Avg Surge Losses","Best Trade","Worst Trade","Notes"]
+        };
+
+        const existing = await sheets.spreadsheets.values.get({
+            spreadsheetId: SHEET_ID,
+            range: `${tabName}!A1:A1`,
+        });
+        const isEmpty = !(existing.data.values && existing.data.values.length > 0);
+
+        const rowsToWrite = [];
+        if (isEmpty && headerMap[type]) {
+            rowsToWrite.push(headerMap[type]);
+        }
+        rowsToWrite.push(row);
+
         await sheets.spreadsheets.values.append({
             spreadsheetId: SHEET_ID,
             range: `${tabName}!A1`,
             valueInputOption: "RAW",
             insertDataOption: "INSERT_ROWS",
-            requestBody: { values: [row] }
+            requestBody: { values: rowsToWrite }
         });
 
         console.log(`BB Strategy: appended ${type} row to ${tabName}`);
