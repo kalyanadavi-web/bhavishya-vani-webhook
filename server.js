@@ -332,8 +332,7 @@ app.post("/webhook/bb-strategy", async (req, res) => {
             "trade_replay":  "BB-Trade-Log-Replay",
             "daily_replay":  "BB-Daily-Log-Replay"
         };
-        };
-
+        
         const tabName = tabMap[type];
         if (!tabName) {
             return res.status(400).send(`Unknown type: ${type}`);
