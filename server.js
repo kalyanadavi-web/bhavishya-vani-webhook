@@ -378,6 +378,58 @@ app.post("/webhook/bb-strategy", async (req, res) => {
         res.status(500).send("Error");
     }
 });
+
+// ── Chartink Alert route (separate bot/group from BV Telegram) ──
+app.post("/webhook/chartink", async (req, res) => {
+    try {
+        const body = req.body;
+
+        if (!body || typeof body !== "string") {
+            return res.status(400).send("Empty body");
+        }
+
+        let data;
+        try {
+            data = JSON.parse(body);
+        } catch (e) {
+            return res.status(400).send("Invalid JSON");
+        }
+
+        const { scan_name, stocks, trigger_prices, triggered_at, alert_name } = data;
+
+        const message =
+            `${alert_name || scan_name || "Chartink Alert"}\n` +
+            `Scan: ${scan_name || "-"}\n` +
+            `Stocks: ${stocks || "-"}\n` +
+            `Prices: ${trigger_prices || "-"}\n` +
+            `Time: ${triggered_at || "-"}`;
+
+        await axios.post(
+            `https://api.telegram.org/bot${process.env.CHARTINK_BOT_TOKEN}/sendMessage`,
+            { chat_id: process.env.CHARTINK_CHAT_ID, text: message }
+        );
+
+        res.status(200).send("OK");
+    } catch (error) {
+        console.error("Chartink webhook error:", error.response?.data || error.message);
+        res.status(500).send("Error");
+    }
+});
+
+// Test Chartink Telegram route
+app.get("/test-chartink", async (req, res) => {
+    try {
+        await axios.post(
+            `https://api.telegram.org/bot${process.env.CHARTINK_BOT_TOKEN}/sendMessage`,
+            { chat_id: process.env.CHARTINK_CHAT_ID, text: "Chartink Telegram Test Successful" }
+        );
+        res.send("Test Message Sent");
+    } catch (error) {
+        console.error(error.response?.data || error.message);
+        res.status(500).send("Error Sending Test Message");
+    }
+});
+
 app.listen(process.env.PORT || 3000, () => {
     console.log("Bhavishya Vani Server Running");
 });
